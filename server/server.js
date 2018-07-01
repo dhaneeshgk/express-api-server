@@ -1,10 +1,11 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const {ObjectID} = require('mongodb')
 
 const {mongoose} = require("./db/mongoose")
 const {ToDo} = require("./models/todo")
 const {User} = require("./models/user")
-
+const port = process.env.PORT || 2000
 
 const app = express();
 
@@ -30,12 +31,28 @@ app.get("/todos", (req, res) => {
 })
 
 
+app.get("/todos/:id", (req, res)=>{
+    let id = req.params.id
+    if (!ObjectID.isValid(id)){
+        return res.status(400).send({"Error":"Invalid ID"})
+    }
+
+    ToDo.findById({
+        _id:id
+    }).then((todo)=>{
+        if(!todo){
+            return res.status(404).send({"todo":{}})
+        }else{
+            return res.status(200).send({"todo":[todo]})
+        }
+    }).catch((e)=>{
+        return res.status(404).send({"Error":"Not Found"})
+    })
+})
 
 
 
 
-
-
-app.listen(2000, () => {
-    console.log("To Do Rest Api on")
+app.listen(port, () => {
+    console.log(`To Do Apis hosted on ${port}`)
 })
